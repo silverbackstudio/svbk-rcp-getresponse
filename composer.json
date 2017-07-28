@@ -11,7 +11,7 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "getresponse/getresponse": "^2.0"
+        "getresponse/getresponse": "^0.0.2"
     },
     "require-dev": {
         "wimg/php-compatibility": "^7.1",
