@@ -16,13 +16,25 @@ use GetResponse;
  */
 class Integration {
 
-    protected $client;
-    
-    public function __construct( $apikey ){
-        
-        $this->client = new GetResponse( $apikey );
-        
-    }
+	/**
+	 * Prints the HTML fields in subscrioption's admin panel
+	 *
+	 * @var GetResponse $client The GetResponse API client instance.
+	 */
+	protected $client;
+
+	/**
+	 * Constructor, instantiate the GR API
+	 *
+	 * @param object $apikey The GetResponse API key.
+	 *
+	 * @return void
+	 */
+	public function __construct( $apikey ) {
+
+		$this->client = new GetResponse( $apikey );
+
+	}
 
 	/**
 	 * Prints the HTML fields in subscrioption's admin panel
@@ -49,12 +61,12 @@ class Integration {
 			</th>
 			<td>
 				<select name="getresponse_campaign_id" id="getresponse_campaign_id">
-				        <option value="" <?php selected( $defaults['getresponse_campaign_id'], '' )?> ><?php esc_html_e('- Select - ', 'svbk-rcp-getresponse') ?></option>
+						<option value="" <?php selected( $defaults['getresponse_campaign_id'], '' )?> ><?php esc_html_e( '- Select - ', 'svbk-rcp-getresponse' ) ?></option>
 				<?php
 					$campaigns = $this->get_campaigns();
 
-				    foreach ( $campaigns as $campaign_id => $campaign_name ) : ?>
-    					<option value="<?php echo esc_attr( $campaign_id ); ?>" <?php selected( $defaults['getresponse_campaign_id'], $campaign_id )?> ><?php echo esc_html( $campaign_name ); ?></option>
+				foreach ( $campaigns as $campaign_id => $campaign_name ) : ?>
+						<option value="<?php echo esc_attr( $campaign_id ); ?>" <?php selected( $defaults['getresponse_campaign_id'], $campaign_id )?> ><?php echo esc_html( $campaign_name ); ?></option>
 					<?php endforeach; ?>
 				</select>
 				<p class="description"><?php esc_html_e( 'The the campaign the user should be subscribet to.', 'svbk-rcp-getresponse' ); ?></p>
@@ -77,11 +89,11 @@ class Integration {
 		global $rcp_levels_db;
 
 		$defaults = array(
-		    'getresponse_campaign_id' => '',
+			'getresponse_campaign_id' => '',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
-		
+
 		if ( current_filter() === 'rcp_add_subscription' ) {
 			$rcp_levels_db->add_meta( $level_id, 'getresponse_campaign_id', sanitize_text_field( $args['getresponse_campaign_id'] ) );
 		} elseif ( current_filter() === 'rcp_pre_edit_subscription_level' ) {
@@ -89,83 +101,86 @@ class Integration {
 		}
 	}
 
-    /**
-     * Get available campaigns via GetResponse API
-     *
-     * @return void
-     */
-    public function get_campaigns(){
-        
-        $this->client->getCampaigns();
-        
-        $campaigns = get_transient( 'svbk_rcp_getresponse_campaigns' );
-        
-        if ( false === $campaigns ) {
-             $campaigns = $this->client->getCampaigns();
-             set_transient( 'svbk_rcp_getresponse_campaigns', $campaigns, 10 * MINUTE_IN_SECONDS );
-        }        
-    
-        if ( (200 !== $this->client->http_status) || empty( $campaigns ) ) {
-            return array();    
-        }
-        
-        return wp_list_pluck($campaigns, 'name', 'campaignId');
-        
-    }
-    
-    /**
-     * Set campaign accordingly
-     *
-     * @return void
-     */
-    public function update( $subscription_id, $user_id, $member ) {
-    	
+	/**
+	 * Get available campaigns via GetResponse API
+	 *
+	 * @return array
+	 */
+	public function get_campaigns() {
+
+		$this->client->getCampaigns();
+
+		$campaigns = get_transient( 'svbk_rcp_getresponse_campaigns' );
+
+		if ( false === $campaigns ) {
+			$campaigns = $this->client->getCampaigns();
+			set_transient( 'svbk_rcp_getresponse_campaigns', $campaigns, 10 * MINUTE_IN_SECONDS );
+		}
+
+		if ( (200 !== $this->client->http_status) || empty( $campaigns ) ) {
+			return array();
+		}
+
+		return wp_list_pluck( $campaigns, 'name', 'campaignId' );
+
+	}
+
+	/**
+	 * Set campaign accordingly
+	 *
+	 * @param int        $subscription_id The subscription id.
+	 * @param int        $user_id The user id .
+	 * @param RCP_Member $member The RCP_Member object.
+	 *
+	 * @return void
+	 */
+	public function update( $subscription_id, $user_id, $member ) {
+
 		global $rcp_levels_db;
 
 		$campaign_id = $rcp_levels_db->get_meta( $subscription_id, 'getresponse_campaign_id', true );
-        
-        if ( ! $campaign_id ) {
-            return;
-        }
-    
-    	$getUser = (array) $this->client->getContacts(array(
-    		'query' => array(
-    			'email' => $member->user_email,
-    		),
-    		'fields' => 'contactId'
-    	));
-    
-    	if ( (200 === $this->client->http_status) && ! empty( $getUser ) && isset( $getUser[0] ) ) {
-    		
-    		$contactId = $getUser[0]->contactId;
-    		
-    		$updateResult = $this->client->updateContact( 
-    			$contactId,
-    			array(
-    			    'campaign' => array(
-    			        'campaignId' => $campaign_id,
-    				)
-    			)
-    		);		
-    		
-    	} else {
-    	    
-    		$addResult = $this->client->addContact(
-    			array(
-    			    'name'              => $member->first_name . ' ' . $member->last_name ,
-    			    'email'             => $member->user_email,
-    			    'dayOfCycle'        => 0,
-    			    'ipAddress'         => $_SERVER['REMOTE_ADDR'],
-    			    'campaign' => array(
-    			        'campaignId' => $campaign_id,
-    				)
-    			)
-    		);
-    		
-    		
-    	}
-    	
-    }
 
-    
+		if ( ! $campaign_id ) {
+			return;
+		}
+
+		$getUser = (array) $this->client->getContacts(array(
+			'query' => array(
+			'email' => $member->user_email,
+			),
+			'fields' => 'contactId',
+		));
+
+		if ( (200 === $this->client->http_status) && ! empty( $getUser ) && isset( $getUser[0] ) ) {
+
+			$contactId = $getUser[0]->contactId;
+
+			$updateResult = $this->client->updateContact(
+				$contactId,
+				array(
+				'campaign' => array(
+				'campaignId' => $campaign_id,
+				),
+				)
+			);
+
+		} else {
+
+			$addResult = $this->client->addContact(
+				array(
+				'name'              => $member->first_name . ' ' . $member->last_name,
+				'email'             => $member->user_email,
+				'dayOfCycle'        => 0,
+				'ipAddress'         => $_SERVER['REMOTE_ADDR'],
+				'campaign' => array(
+				'campaignId' => $campaign_id,
+				),
+				)
+			);
+
+		}
+
+	}
+
+
 }

@@ -30,7 +30,7 @@ function svbk_rcp_getresponse_init() {
 		require_once 'src/Integration.php';
 	}
 
-	$svbk_rcp_getresponse = new GetResponse\Integration( env('GETRESPONSE_APIKEY') );
+	$svbk_rcp_getresponse = new GetResponse\Integration( env( 'GETRESPONSE_APIKEY' ) );
 
 	add_action( 'rcp_add_subscription_form', array( $svbk_rcp_getresponse, 'admin_subscirption_form' ) );
 	add_action( 'rcp_edit_subscription_form', array( $svbk_rcp_getresponse, 'admin_subscirption_form' ) );
@@ -38,7 +38,7 @@ function svbk_rcp_getresponse_init() {
 	add_action( 'rcp_add_subscription', array( $svbk_rcp_getresponse, 'admin_subscirption_form_save' ), 10, 2 );
 	add_action( 'rcp_pre_edit_subscription_level', array( $svbk_rcp_getresponse, 'admin_subscirption_form_save' ), 10, 2 );
 
-	add_action( 'rcp_member_post_set_subscription_id', array( $svbk_rcp_getresponse, 'update') , 10, 3);
+	add_action( 'rcp_member_post_set_subscription_id', array( $svbk_rcp_getresponse, 'update' ) , 10, 3 );
 }
 
 add_action( 'plugins_loaded', 'svbk_rcp_getresponse_init' );
