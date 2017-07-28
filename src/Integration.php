@@ -69,7 +69,7 @@ class Integration {
 						<option value="<?php echo esc_attr( $campaign_id ); ?>" <?php selected( $defaults['getresponse_campaign_id'], $campaign_id )?> ><?php echo esc_html( $campaign_name ); ?></option>
 					<?php endforeach; ?>
 				</select>
-				<p class="description"><?php esc_html_e( 'The the campaign the user should be subscribet to.', 'svbk-rcp-getresponse' ); ?></p>
+				<p class="description"><?php esc_html_e( 'The campaign the user should be subscribet to.', 'svbk-rcp-getresponse' ); ?></p>
 			</td>
 		</tr>
 

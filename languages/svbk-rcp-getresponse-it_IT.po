@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Restrict Content Pro - GetResponse\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-07-28 15:17+0000\n"
+"PO-Revision-Date: 2017-07-28 15:17+0000\n"
+"Last-Translator: Silverback Studio <webmaster@silverbackstudio.it>\n"
+"Language-Team: Italian\n"
+"Language: it-IT\n"
+"Plural-Forms: nplurals=2; plural=n != 1\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco - https://localise.biz/"
+
+#: src/Integration.php:72
+msgid "The campaign the user should be subscribet to."
+msgstr "La campagna a cui l'utente verrà iscritto"
+
+#: src/Integration.php:60
+msgid "GetResponse Campaign"
+msgstr "Campagna GetResponse"
+
+#: src/Integration.php:64
+msgid "- Select - "
+msgstr "- Seleziona -"
+
+#. Name of the plugin
+msgid "Restrict Content Pro - GetResponse"
+msgstr "Restrict Content Pro - GetResponse"
+
+#. Description of the plugin
+msgid "Integrate Restrict Content Pro with GetResponse"
+msgstr "Integrazione Restrict Content Pro con GetResponse"
+
+#. Author of the plugin
+msgid "Silverback Studio"
+msgstr "Silverback Studio"
+
+#. Author URI of the plugin
+msgid "http://www.silverbackstudio.it/"
+msgstr "http://www.silverbackstudio.it/"
