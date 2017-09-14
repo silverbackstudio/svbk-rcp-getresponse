@@ -8,7 +8,7 @@
 
 namespace Svbk\WP\Plugins\RCP\GetResponse;
 
-use GetResponse;
+use Svbk\WP\Helpers;
 
 
 /**
@@ -32,7 +32,7 @@ class Integration {
 	 */
 	public function __construct( $apikey ) {
 
-		$this->client = new GetResponse( $apikey );
+		$this->client = new Helpers\Mailing\GetResponse( $apikey );
 
 	}
 
@@ -53,27 +53,31 @@ class Integration {
 		if ( ! empty( $level ) ) {
 			$defaults['getresponse_campaign_id'] = $rcp_levels_db->get_meta( $level->id, 'getresponse_campaign_id', true );
 		}
+		
+		$campaigns = $this->client->getCampaigns();
 		?>
-
 		<tr class="form-field">
 			<th scope="row" valign="top">
 				<label for="getresponse_campaign_id"><?php esc_html_e( 'GetResponse Campaign', 'svbk-rcp-getresponse' ); ?></label>
 			</th>
 			<td>
+			<?php if ( $campaigns ) :
+				$campaigns = wp_list_pluck( $campaigns, 'name', 'campaignId' );			?>
 				<select name="getresponse_campaign_id" id="getresponse_campaign_id">
 						<option value="" <?php selected( $defaults['getresponse_campaign_id'], '' )?> ><?php esc_html_e( '- Select - ', 'svbk-rcp-getresponse' ) ?></option>
-				<?php
-					$campaigns = $this->get_campaigns();
-
-				foreach ( $campaigns as $campaign_id => $campaign_name ) : ?>
+					<?php foreach ( $campaigns as $campaign_id => $campaign_name ) : ?>
 						<option value="<?php echo esc_attr( $campaign_id ); ?>" <?php selected( $defaults['getresponse_campaign_id'], $campaign_id )?> ><?php echo esc_html( $campaign_name ); ?></option>
 					<?php endforeach; ?>
 				</select>
+			
 				<p class="description"><?php esc_html_e( 'The campaign the user should be subscribet to.', 'svbk-rcp-getresponse' ); ?></p>
+			<?php else: ?>
+				<p ><?php esc_html_e( 'No available GetResponse campaigns. Please create one.', 'svbk-rcp-getresponse' ); ?></p>
+			<?php endif; ?>
 			</td>
 		</tr>
-
-	<?php }
+	<?php
+	}
 
 
 	/**
@@ -101,29 +105,6 @@ class Integration {
 		}
 	}
 
-	/**
-	 * Get available campaigns via GetResponse API
-	 *
-	 * @return array
-	 */
-	public function get_campaigns() {
-
-		$this->client->getCampaigns();
-
-		$campaigns = get_transient( 'svbk_rcp_getresponse_campaigns' );
-
-		if ( false === $campaigns ) {
-			$campaigns = $this->client->getCampaigns();
-			set_transient( 'svbk_rcp_getresponse_campaigns', $campaigns, 10 * MINUTE_IN_SECONDS );
-		}
-
-		if ( (200 !== $this->client->http_status) || empty( $campaigns ) ) {
-			return array();
-		}
-
-		return wp_list_pluck( $campaigns, 'name', 'campaignId' );
-
-	}
 
 	/**
 	 * Set campaign accordingly
@@ -144,41 +125,11 @@ class Integration {
 			return;
 		}
 
-		$getUser = (array) $this->client->getContacts(array(
-			'query' => array(
-			'email' => $member->user_email,
-			),
-			'fields' => 'contactId',
-		));
+		$args = array(
+			'name' => $member->first_name . ' ' . $member->last_name,
+		);
 
-		if ( (200 === $this->client->http_status) && ! empty( $getUser ) && isset( $getUser[0] ) ) {
-
-			$contactId = $getUser[0]->contactId;
-
-			$updateResult = $this->client->updateContact(
-				$contactId,
-				array(
-				'campaign' => array(
-				'campaignId' => $campaign_id,
-				),
-				)
-			);
-
-		} else {
-
-			$addResult = $this->client->addContact(
-				array(
-				'name'              => $member->first_name . ' ' . $member->last_name,
-				'email'             => $member->user_email,
-				'dayOfCycle'        => 0,
-				'ipAddress'         => $_SERVER['REMOTE_ADDR'],
-				'campaign' => array(
-				'campaignId' => $campaign_id,
-				),
-				)
-			);
-
-		}
+		return $this->client->subscribe( $campaign_id, $member->user_email, $args, true );
 
 	}
 
